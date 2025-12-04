@@ -153,6 +153,7 @@ describe("Dappazon", () => {
 
   describe("Withdrawing", () => {
     let transaction
+    let balanceBefore
 
     beforeEach(async () => {
       // List item first
