@@ -13,14 +13,52 @@ import Dappazon from './abis/Dappazon.json'
 import config from './config.json'
 
 function App() {
+  const [provider, setProvider] = useState(null)
+  const [dappazon, setDappazon] = useState(null)
+
   const [account, setAccount] = useState(null)
+
+  const [electronics, setElectronics] = useState(null)
+  const [clothing, setClothing] = useState(null)
+  const [toys, setToys] = useState(null)
+
+  const togglePop = () => { console.log('toggle pop...') }
 
 
   const loadBlockchainData = async () => {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    const account = ethers.utils.getAddress(accounts[0])
-    setAccount(account)
-    console.log("Account:", account)
+    // connect to blockchain
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    setProvider(provider)
+    const network = await provider.getNetwork()
+    console.log("Network:", network)
+
+    // connect to smart contract
+    const dappazon = new ethers.Contract(
+      config[network.chainId].dappazon.address,
+      Dappazon,
+      provider
+    )
+    setDappazon(dappazon)
+    console.log("Dappazon:", dappazon)
+
+    // load products
+    const items = []
+    for (let i = 1; i <= 9; i++) {
+      const item = await dappazon.items(i)
+      items.push(item)
+    }
+    const electronics = items.filter((item) => item.category === 'electronics')
+    const clothing = items.filter((item) => item.category === 'clothing')
+    const toys = items.filter((item) => item.category === 'toys')
+
+    setElectronics(electronics)
+    setClothing(clothing)
+    setToys(toys)
+
+    // const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    // const account = ethers.utils.getAddress(accounts[0])
+    // setAccount(account)
+    // console.log("Account:", account)
     // const provider = new ethers.providers.Web3Provider(window.ethereum)
     // const network = await provider.getNetwork()
     // console.log("Network:", network)
@@ -34,9 +72,14 @@ function App() {
     <div>
       <Navigation account={account} setAccount={setAccount}/>
 
-      <h2>Welcome to Dappazon</h2>
-      <p>{account}</p>
-
+      <h2>Dappazon Best Sellers</h2>
+      {electronics && clothing && toys && (
+        <>
+          <Section title="Clothing & Jewelry" items={clothing} togglePop={togglePop} />
+          <Section title="Electronics & Gadgets" items={electronics} togglePop={togglePop} />
+          <Section title="Toys & Gaming" items={toys} togglePop={togglePop} />
+        </>
+      )}
     </div>
   );
 }
