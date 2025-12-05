@@ -12,7 +12,31 @@ const tokens = (n) => {
 }
 
 async function main() {
+  // setup accounts
+  const [deployer] = await ethers.getSigners()
 
+  // deploy Dappazon contract
+  const Dappazon = await hre.ethers.getContractFactory("Dappazon")
+  const dappazon = await Dappazon.deploy()
+  await dappazon.deployed()
+
+  console.log(`Deployed Dappazon contract at: ${dappazon.address}\n`)
+
+  // list items
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    const transaction = await dappazon.connect(deployer).list(
+      item.id,
+      item.name,
+      item.category,
+      item.image,
+      tokens(item.price),
+      item.rating,
+      item.stock
+    )
+    await transaction.wait()
+    console.log(`Listed item ${item.id}: ${item.name}`)
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
